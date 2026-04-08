@@ -198,9 +198,6 @@ function App() {
         </div>
       </main>
 
-      <footer className="relative z-10 text-center py-12 text-slate-600 text-sm border-t border-white/5 mt-20">
-        &copy; {new Date().getFullYear()} Premium URL Shortener &middot; Firestore Powered
-      </footer>
     </div>
   );
 }
