@@ -16,10 +16,10 @@ jobs:
         with:
           node-version: 20
       - name: Install and Build
+        working-directory: ./frontend
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          cd frontend
           npm install
           npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
