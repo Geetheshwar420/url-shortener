@@ -9,20 +9,36 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    env:
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Create Env File
-        working-directory: ./frontend
-        run: echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env.production
+          
+      - name: Check Secret
+        run: |
+          if [ -z "$VITE_API_URL" ]; then
+            echo "ERROR: VITE_API_URL secret is EMPTY or MISSING!"
+            exit 1
+          fi
+          
       - name: Install and Build
         working-directory: ./frontend
         run: |
           npm install
-          VITE_API_URL=${{ secrets.VITE_API_URL }} npm run build
+          npm run build
+          
+      - name: Verify Bundle
+        working-directory: ./frontend
+        run: |
+          if grep -r "localhost:3001" dist/assets/*.js; then
+            echo "ERROR: Build still contains localhost:3001! Build injection failed."
+            exit 1
+          fi
+          echo "Build verified: No localhost found."
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
