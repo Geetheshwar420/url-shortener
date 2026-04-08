@@ -19,6 +19,7 @@ export default defineConfig([
         ...globals.browser,
         ...globals.node,
         process: 'readable',
+        __API_URL__: 'readonly',
       },
       parserOptions: {
         ecmaVersion: 'latest',

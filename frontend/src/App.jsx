@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link2, Copy, ExternalLink, History, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 
-const API_BASE_URL = (typeof process !== 'undefined' && process.env.VITE_API_URL) 
-  || import.meta.env.VITE_API_URL 
-  || 'http://localhost:3001';
+const API_BASE_URL = __API_URL__;
 
 function App() {
   const [longUrl, setLongUrl] = useState('');
