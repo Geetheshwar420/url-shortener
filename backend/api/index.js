@@ -57,11 +57,15 @@ app.post('/api/shorten', async (req, res) => {
     const shortCode = nanoid(6);
     const docRef = urlsCol.doc(shortCode);
     
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // Default 7 days expiry
+
     await docRef.set({
       originalUrl: longUrl,
       shortCode,
       clicks: 0,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      expiresAt: admin.firestore.Timestamp.fromDate(expiresAt)
     });
 
     // We return the shortCode; full URL construction happens on client or via env
@@ -83,7 +87,8 @@ app.get('/api/links', async (req, res) => {
     const links = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate() || new Date()
+      createdAt: doc.data().createdAt?.toDate() || new Date(),
+      expiresAt: doc.data().expiresAt?.toDate() || null
     }));
     res.json(links);
   } catch (error) {
@@ -107,7 +112,18 @@ app.get('/:shortCode', async (req, res) => {
       return res.status(404).send('<h1>404 - Link not found</h1>');
     }
 
-    const { originalUrl } = doc.data();
+    const { originalUrl, expiresAt } = doc.data();
+
+    // Check for expiry
+    if (expiresAt && expiresAt.toDate() < new Date()) {
+      return res.status(410).send(`
+        <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+          <h1 style="color: #ef4444;">Link Expired</h1>
+          <p style="color: #64748b;">This link was set to expire after 7 days and is no longer available.</p>
+          <a href="/" style="color: #06b6d4; text-decoration: none;">Create a new link</a>
+        </div>
+      `);
+    }
 
     // Increment clicks asynchronously (don't block the redirect)
     docRef.update({

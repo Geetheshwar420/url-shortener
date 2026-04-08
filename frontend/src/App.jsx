@@ -151,13 +151,24 @@ function App() {
 
           <div className="grid gap-4">
             {history.length > 0 ? (
-              history.map((item) => (
+              history.map((item) => {
+                const expiryDate = item.expiresAt ? new Date(item.expiresAt) : null;
+                const isExpired = expiryDate && expiryDate < new Date();
+
+                return (
                 <div 
                   key={item.shortCode}
-                  className="group flex items-center justify-between p-5 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-2xl transition-all"
+                  className={`group flex items-center justify-between p-5 bg-white/[0.03] hover:bg-white/[0.06] border rounded-2xl transition-all ${isExpired ? 'border-red-500/10' : 'border-white/5'}`}
                 >
                   <div className="flex-1 min-w-0 pr-4">
-                    <p className="text-sm text-slate-500 truncate mb-1">{item.originalUrl}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-sm text-slate-500 truncate">{item.originalUrl}</p>
+                      {expiryDate && (
+                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md ${isExpired ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'}`}>
+                          {isExpired ? 'Expired' : `Expires ${expiryDate.toLocaleDateString()}`}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-mono text-cyan-400">{`${API_BASE_URL}/${item.shortCode}`}</span>
                       <span className="text-xs bg-white/5 px-2 py-0.5 rounded-full border border-white/10 text-slate-400">
@@ -176,7 +187,8 @@ function App() {
                     )}
                   </button>
                 </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-center py-20 bg-white/[0.02] rounded-3xl border border-dashed border-white/10">
                 <p className="text-slate-500">No links in your history.</p>
